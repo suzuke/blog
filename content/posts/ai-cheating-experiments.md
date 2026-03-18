@@ -14,18 +14,81 @@ This is what happened when I gave it a Gomoku AlphaZero task.
 
 The agent edits `agent.py`. It has to write `train()` (self-play + neural net, 300s budget) and `choose_move()` (MCTS guided by the net). Then it plays games against a random player, a greedy player, and an alpha-beta depth-4 champion. Weighted win rate is the only number that matters.
 
+The config:
+
+```yaml
+# .crucible/config.yaml
+files:
+  editable: ["agent.py"]
+  readonly: ["game.py"]
+  hidden: ["evaluate.py", "opponent.py"]
+
+metric:
+  name: "win_rate"
+  direction: "maximize"
+
+constraints:
+  timeout_seconds: 600
+```
+
+The agent can read and edit `agent.py`. It can read `game.py`. It has no idea `evaluate.py` and `opponent.py` even exist.
+
 ## Cheat #1: just don't train
 
 The agent figured out pretty quickly that training a neural net is slow and the results are uncertain. Alpha-beta search, on the other hand, is deterministic. So it wrote a solid search engine with transposition tables and Zobrist hashing. `train()` just instantiated an empty net and saved it. The `net` parameter in `choose_move()`? Ignored entirely.
 
-Win rate went up. The metric said "progress." But there was no neural net doing anything. The whole point of the experiment was gone.
+Here's what the run log looked like:
+
+```
+=== Training Phase ===
+training_complete: using alpha-beta search agent with TT
+train_time_sec: 0.0
+```
+
+Zero seconds of training. And the result?
+
+| Iter | Win rate | Status | What the agent did |
+|------|----------|--------|--------------------|
+| 1 | 0.0 | crash | First attempt at alpha-beta, had a bug |
+| 2 | **99.3** | keep | Fixed it. Pure search engine, no neural net |
+| 3 | 0.0 | crash | Tried to add NN on top, broke it |
+| 4 | 99.3 | discard | Added transposition table, same score |
+| 5 | 0.0 | crash | Increased depth, timed out |
+
+99.3% win rate. The metric said "progress." But there was no neural net doing anything. The whole point of the experiment was gone.
 
 ## The fix
 
 I added two checks in `evaluate.py` (which the agent can't see or edit):
 
-1. `train_time < 30s` = score 0. If you're training, it takes more than 30 seconds.
-2. `register_forward_hook` on the net. If `forward()` never fires during 3 moves of play, score 0.
+```python
+# Rule 1: training must take real time
+MIN_TRAIN_TIME = 30.0
+if train_time < MIN_TRAIN_TIME:
+    print(f"ENFORCEMENT FAIL: train_time={train_time:.1f}s < minimum {MIN_TRAIN_TIME}s")
+    print("win_rate: 0.0")
+    return
+
+# Rule 2: the neural net must actually be called during play
+net_call_count = [0]
+hook = net.register_forward_hook(
+    lambda m, i, o: net_call_count.__setitem__(0, net_call_count[0] + 1)
+)
+# ... play 3 probe moves ...
+if net_call_count[0] == 0:
+    print("ENFORCEMENT FAIL: choose_move() never called net.forward()")
+    print("win_rate: 0.0")
+    return
+```
+
+After the fix, the logs look like this when the agent plays fair:
+
+```
+train_time_sec: 270.6
+enforcement_ok: train_time=270.6s, net_calls_per_move=50.0
+```
+
+270 seconds of real training, 50 neural net forward passes per move. That's real MCTS.
 
 ## Cheat #2: call forward(), throw away the answer
 
@@ -43,9 +106,30 @@ One sign. The tree search started preferring paths where it loses. 0% win rate. 
 
 ## Discovery #4: you can't self-play past a fixed ceiling
 
-Once the bugs were out, the agent landed on a reasonable approach: heuristic self-play (900 games per run), cosine learning rate, a persistent replay buffer accumulating 100k samples across iterations, 32 training batches per cycle.
+Once the bugs were out, the agent started making real progress. Here's the actual run data from 16 iterations:
 
-Win rate hit 26.7 and stopped. The theoretical max was about 30: even 100% wins against Random and Greedy only add up to 30 when the Champion weight is 0.7 and you can't beat it. The champion was a fixed alpha-beta search. Not a neural net. Not promotable. There was nowhere left to go.
+| Iter | Win rate | Status | Description |
+|------|----------|--------|-------------|
+| 1 | 0.0 | crash | Tried pure search again, enforcement caught it |
+| 2 | 11.3 | keep | First real NN training. Tactical win/block detection |
+| 3 | 16.7 | keep | Added 3 tactical layers to choose_move (+47.8%) |
+| 4 | 16.0 | discard | Replaced MCTS with 2-ply minimax, slightly worse |
+| 5 | 20.0 | keep | Heuristic self-play, more training data |
+| 6 | 0.0 | crash | Broke something |
+| 7 | 21.3 | keep | Persistent replay buffer across iterations |
+| 8 | 24.0 | keep | Dropped MCTS self-play for fast heuristic, 2x batches |
+| 9 | 25.3 | keep | Cosine LR + buffer optimization |
+| 10 | **26.7** | keep | Peak. 900 games/run, 32 batches/cycle |
+| 11 | 22.7 | discard | 4x batches, worse (overtrained) |
+| 12 | 22.0 | discard | 2-ply re-ranking, regression |
+| 13 | 26.0 | discard | Better heuristic scoring, marginal |
+| 14 | 26.7 | discard | FPU reduction, tied (not better = discard) |
+| 15 | 18.7 | discard | Blended heuristic+net priors, big regression |
+| 16 | 20.7 | discard | Limited MCTS expansion, still worse |
+
+The pattern is clear: 6 iterations of improvement, then 6 iterations of going nowhere. The agent tried everything it could think of and nothing broke past 26.7.
+
+The theoretical max was about 30 (100% vs Random × 0.1 + 100% vs Greedy × 0.2 + 0% vs Champion × 0.7 = 30). The champion was a fixed alpha-beta depth-4. Not a neural net. Not promotable. A 300-second training budget can't produce a net that outplays competent search.
 
 If you want self-play to keep improving, the champion has to be a neural net too, and it has to get replaced when something better comes along.
 
