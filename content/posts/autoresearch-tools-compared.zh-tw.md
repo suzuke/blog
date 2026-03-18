@@ -1,7 +1,7 @@
 ---
 title: "Autoresearch 工具比較：5 種自動跑實驗的方法"
 date: 2026-03-18
-draft: true
+draft: false
 summary: "karpathy/autoresearch、pi-autoresearch、autoexp、Claude Autoresearch、Crucible 的實測比較。各自的強項和弱點。"
 description: "karpathy/autoresearch、pi-autoresearch、autoexp、Claude Autoresearch、Crucible 的實測比較。各自的強項和弱點。"
 tags: ["autoresearch", "ai", "autonomous-experiments", "comparison"]

@@ -1,7 +1,7 @@
 ---
 title: "Autoresearch tools compared: 5 ways to run autonomous experiments"
 date: 2026-03-18
-draft: true
+draft: false
 summary: "A practical comparison of karpathy/autoresearch, pi-autoresearch, autoexp, Claude Autoresearch, and Crucible. What each does well, where each breaks down."
 description: "A practical comparison of karpathy/autoresearch, pi-autoresearch, autoexp, Claude Autoresearch, and Crucible. What each does well, where each breaks down."
 tags: ["autoresearch", "ai", "autonomous-experiments", "comparison"]
