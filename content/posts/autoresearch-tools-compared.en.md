@@ -143,7 +143,9 @@ Realistically, the choice comes down to what you care about. Speed-to-start favo
 
 I ran the same sorting optimization task with four different tool approaches. Same starting `sort.py` (Python built-in `arr.sort()`), same `benchmark.py`, same metric (ops/sec, higher is better). Each got ~5 iterations.
 
-The only difference: in Crucible, benchmark.py is hidden from the agent. In the other three, the agent can read it.
+All four tests ran under Claude Code Max with Claude Opus 4.6. Same model, same subscription, no difference in reasoning ability. The only variables are the tool architecture and what the agent can access.
+
+In Crucible, benchmark.py is hidden from the agent. In the other three, the agent can read it.
 
 ### Results summary
 
@@ -195,6 +197,17 @@ The only difference: in Crucible, benchmark.py is hidden from the agent. In the 
 | 3 | 277.01 | keep | Pre-allocated reusable numpy buffer |
 | 4 | 264.70 | discard | Tried struct.unpack, slower |
 | 5 | **292.40** | keep | array.array as zero-copy bridge to numpy |
+
+### The iteration count problem
+
+One thing I didn't expect: I told all four agents "run 5 iterations." They each interpreted that differently.
+
+- **autoresearch**: ran 4 (counted baseline as iteration 1, so "5" meant baseline + 3 experiments)
+- **autoexp**: ran 6 (counted baseline as iteration 0, then ran 5 experiments on top)
+- **Claude Autoresearch**: ran 5 (got it right)
+- **Crucible**: ran 5 (`--max-iterations 5` in code, no ambiguity)
+
+Three agents, three interpretations of the same instruction. Crucible's orchestrator doesn't have this problem because a Python `for` loop counts to 5 the same way every time. It's a small thing, but over a 100-iteration overnight run, "off by one" adds up.
 
 ### What this tells you
 
