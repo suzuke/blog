@@ -139,16 +139,69 @@ If you're working on the original nanochat task, just use karpathy/autoresearch.
 
 Realistically, the choice comes down to what you care about. Speed-to-start favors prompt-based tools. Reliability-of-results favors code-enforced ones. Most people start with the first and move to the second after the agent does something unexpected.
 
-## Real test: Crucible on sorting optimization
+## Real test: same task, four tools
 
-I ran Crucible on its built-in `optimize-sorting` benchmark: pure Python sorting throughput, measured in ops/sec. 5 iterations, ~4 minutes total.
+I ran the same sorting optimization task with four different tool approaches. Same starting `sort.py` (Python built-in `arr.sort()`), same `benchmark.py`, same metric (ops/sec, higher is better). Each got ~5 iterations.
 
-| Iter | ops/sec | Status | What the agent did |
-|------|---------|--------|--------------------|
-| 1 | 206.22 | keep | Switched to numpy's introsort (C/SIMD) |
-| 2 | 271.72 | keep | Used int32 instead of int64 to halve memory bandwidth |
+The only difference: in Crucible, benchmark.py is hidden from the agent. In the other three, the agent can read it.
+
+### Results summary
+
+| Tool style | Baseline | Best ops/sec | Improvement | Iters | Can see benchmark? |
+|------------|----------|-------------|-------------|-------|--------------------|
+| autoresearch | 92.80 | 276.79 | +198% | 4 | yes |
+| autoexp | 97.55 | **322.94** | +231% | 6 | yes |
+| Claude Autoresearch | 98.55 | 300.11 | +205% | 5 | yes |
+| Crucible | ~92 | 292.40 | +218% | 5 | **no** |
+
+### What each agent did
+
+**autoresearch style** (4 iterations, best 276.79):
+
+| Iter | ops/sec | Status | Description |
+|------|---------|--------|-------------|
+| 0 | 92.80 | baseline | Python built-in sort |
+| 1 | 214.37 | keep | numpy sort |
+| 2 | 161.06 | revert | numpy stable sort (slower) |
+| 3 | 276.79 | keep | numpy int32 dtype |
+
+**autoexp style** (6 iterations, best 322.94):
+
+| Iter | ops/sec | Status | Description |
+|------|---------|--------|-------------|
+| 0 | 97.55 | baseline | Python built-in sort |
+| 1 | 213.77 | keep | numpy sort |
+| 2 | 244.89 | keep | numpy fromiter + quicksort |
+| 3 | 167.99 | revert | numpy stable sort (radix) |
+| 4 | **322.94** | keep | numpy int32 quicksort |
+| 5 | 300.64 | revert | np.array int32 quicksort (slower variant) |
+
+**Claude Autoresearch style** (5 iterations, best 300.11):
+
+| Iter | ops/sec | Status | Description |
+|------|---------|--------|-------------|
+| 0 | 98.55 | baseline | Python built-in sort |
+| 1 | 222.84 | keep | numpy sort |
+| 2 | 244.94 | keep | numpy fromiter + quicksort |
+| 3 | **300.11** | keep | Wrote a C radix sort, compiled to .dylib, called via ctypes |
+| 4 | 87.32 | revert | ctypes array instead of numpy, slower |
+
+**Crucible** (5 iterations, best 292.40):
+
+| Iter | ops/sec | Status | Description |
+|------|---------|--------|-------------|
+| 1 | 206.22 | keep | Switched to numpy introsort (C/SIMD) |
+| 2 | 271.72 | keep | int32 instead of int64, halved memory bandwidth |
 | 3 | 277.01 | keep | Pre-allocated reusable numpy buffer |
-| 4 | 264.70 | discard | Tried struct.unpack for conversion, slower |
-| 5 | **292.40** | keep | Used array.array as zero-copy bridge to numpy |
+| 4 | 264.70 | discard | Tried struct.unpack, slower |
+| 5 | **292.40** | keep | array.array as zero-copy bridge to numpy |
 
-41.8% improvement in 4 minutes. 4 keeps, 1 discard. The agent never saw the benchmark code (it's hidden), so it couldn't game the metric. It had to actually make the sorting faster.
+### What this tells you
+
+The autoexp agent got the highest raw number (322.94). The Claude Autoresearch agent did the most creative thing (writing and compiling a C library). Crucible didn't win on the metric.
+
+But look at what the Claude Autoresearch agent did: it wrote a C radix sort, compiled it into a shared library, and loaded it via ctypes. It could do this because it had shell access and could read the benchmark to understand exactly what input sizes and data types to optimize for. In Crucible, the agent has no shell and can't see the benchmark. It had to work from first principles.
+
+Whether that matters depends on your use case. If the goal is "make this code as fast as possible by any means," let the agent see everything and give it shell access. If the goal is "find improvements that generalize and aren't fitted to the specific benchmark," hide the evaluation.
+
+The 4-tool test also confirmed something I expected: all the prompt-based tools work fine for well-behaved tasks. The sorting benchmark is simple, the metric is honest, and there's no reason for the agent to cheat. The differences between tools only show up when the task gets adversarial (see my [previous post on agent cheating](/blog/posts/ai-cheating-experiments/)).
