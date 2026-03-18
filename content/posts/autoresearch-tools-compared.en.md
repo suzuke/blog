@@ -143,7 +143,7 @@ Realistically, the choice comes down to what you care about. Speed-to-start favo
 
 I ran the same sorting optimization task with four different tool approaches. Same starting `sort.py` (Python built-in `arr.sort()`), same `benchmark.py`, same metric (ops/sec, higher is better). Each got ~5 iterations.
 
-All four tests ran under Claude Code Max with Claude Opus 4.6. Same model, same subscription, no difference in reasoning ability. The only variables are the tool architecture and what the agent can access.
+All four tests ran under Claude Code Max with Claude Opus 4.6. Same model, same subscription, no difference in reasoning ability. The only variables are the tool architecture and what the agent can access. Full results, code, and prompts are in the [benchmark repo](https://github.com/suzuke/autoresearch-benchmark).
 
 In Crucible, benchmark.py is hidden from the agent. In the other three, the agent can read it.
 
