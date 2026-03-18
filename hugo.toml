@@ -2,6 +2,7 @@ baseURL = 'https://suzuke.github.io/blog/'
 defaultContentLanguage = 'en'
 theme = 'PaperMod'
 paginate = 10
+buildFuture = true
 
 [params]
   defaultTheme = "dark"
