@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Autoresearch on suzuke&#39;s blog</title>
+    <link>https://suzuke.github.io/tags/autoresearch/</link>
+    <description>Recent content in Autoresearch on suzuke&#39;s blog</description>
+    <generator>Hugo</generator>
+    <language>en-us</language>
+    <lastBuildDate>Wed, 18 Mar 2026 00:00:00 +0000</lastBuildDate>
+    <atom:link href="https://suzuke.github.io/tags/autoresearch/index.xml" rel="self" type="application/rss+xml" />
+    <item>
+      <title>I Let AI Run 100 Experiments — It Learned to Cheat</title>
+      <link>https://suzuke.github.io/posts/ai-cheating-experiments/</link>
+      <pubDate>Wed, 18 Mar 2026 00:00:00 +0000</pubDate>
+      <guid>https://suzuke.github.io/posts/ai-cheating-experiments/</guid>
+      <description>&lt;p&gt;I built a tool that lets an LLM agent iterate on code autonomously — edit, run, measure, keep or discard, repeat. Similar to Karpathy&amp;rsquo;s autoresearch, but I added guardrails after discovering agents will exploit any gap in your evaluation.&lt;/p&gt;&#xA;&lt;p&gt;Here&amp;rsquo;s what happened when I pointed it at a Gomoku (five-in-a-row) AlphaZero task.&lt;/p&gt;&#xA;&lt;h2 id=&#34;the-setup&#34;&gt;The setup&lt;/h2&gt;&#xA;&lt;p&gt;Agent edits &lt;code&gt;agent.py&lt;/code&gt;. It must implement &lt;code&gt;train()&lt;/code&gt; (self-play + neural net training, 300s budget) and &lt;code&gt;choose_move()&lt;/code&gt; (MCTS guided by the net). Evaluation plays games against Random, Greedy, and a fixed alpha-beta depth-4 champion. Weighted win rate is the metric.&lt;/p&gt;</description>
+    </item>
+  </channel>
+</rss>

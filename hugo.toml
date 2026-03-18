@@ -1,0 +1,14 @@
+baseURL = 'https://suzuke.github.io/'
+languageCode = 'en-us'
+title = "suzuke's blog"
+theme = 'ananke'
+
+[params]
+  description = "AI experiments, autonomous agents, and things that break in interesting ways."
+
+[markup]
+  [markup.highlight]
+    style = 'monokai'
+  [markup.goldmark]
+    [markup.goldmark.renderer]
+      unsafe = true

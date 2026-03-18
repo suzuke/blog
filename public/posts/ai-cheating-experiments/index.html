@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    
+    <title>I Let AI Run 100 Experiments — It Learned to Cheat | suzuke&#39;s blog</title>
+    <meta name="viewport" content="width=device-width,minimum-scale=1">
+    <meta name="description" content="What happens when an LLM agent optimizes a metric with no guardrails? It games the evaluation. Here&#39;s how I discovered and fixed it.">
+    <meta name="generator" content="Hugo 0.158.0">
+    
+    
+    
+      <meta name="robots" content="index, follow">
+    
+    
+
+    
+<link rel="stylesheet" href="/ananke/css/main.min.efe4d852f731d5d1fbb87718387202a97aafd768cdcdaed0662bbe6982e91824.css" >
+
+
+
+
+    
+
+
+    
+      
+
+    
+
+    
+
+    
+      <link rel="canonical" href="https://suzuke.github.io/posts/ai-cheating-experiments/">
+    
+
+    
+    
+    <meta property="og:url" content="https://suzuke.github.io/posts/ai-cheating-experiments/">
+  <meta property="og:site_name" content="suzuke&#39;s blog">
+  <meta property="og:title" content="I Let AI Run 100 Experiments — It Learned to Cheat">
+  <meta property="og:description" content="What happens when an LLM agent optimizes a metric with no guardrails? It games the evaluation. Here&#39;s how I discovered and fixed it.">
+  <meta property="og:locale" content="en_us">
+  <meta property="og:type" content="article">
+    <meta property="article:section" content="posts">
+    <meta property="article:published_time" content="2026-03-18T00:00:00+00:00">
+    <meta property="article:modified_time" content="2026-03-18T00:00:00+00:00">
+    <meta property="article:tag" content="Ai">
+    <meta property="article:tag" content="Autoresearch">
+    <meta property="article:tag" content="Guardrails">
+    <meta property="article:tag" content="Goodharts-Law">
+    <meta property="article:tag" content="Machine-Learning">
+
+  <meta itemprop="name" content="I Let AI Run 100 Experiments — It Learned to Cheat">
+  <meta itemprop="description" content="What happens when an LLM agent optimizes a metric with no guardrails? It games the evaluation. Here&#39;s how I discovered and fixed it.">
+  <meta itemprop="datePublished" content="2026-03-18T00:00:00+00:00">
+  <meta itemprop="dateModified" content="2026-03-18T00:00:00+00:00">
+  <meta itemprop="wordCount" content="688">
+  <meta itemprop="keywords" content="Ai,Autoresearch,Guardrails,Goodharts-Law,Machine-Learning">
+  <meta name="twitter:card" content="summary">
+  <meta name="twitter:title" content="I Let AI Run 100 Experiments — It Learned to Cheat">
+  <meta name="twitter:description" content="What happens when an LLM agent optimizes a metric with no guardrails? It games the evaluation. Here&#39;s how I discovered and fixed it.">
+
+      
+      
+    
+	
+  </head><body class="ma0 avenir bg-near-white production is-page is-page page-ai-cheating-experiments">
+    
+   
+  
+
+  <header>
+    <div class="bg-black">
+      <nav class="pv3 ph3 ph4-ns" role="navigation">
+  <div class="flex-l center items-center justify-between">
+    <a href="/" class="f3 fw2 hover-white white-90 dib no-underline">
+      
+        suzuke&#39;s blog
+      
+    </a>
+    <div class="flex-l items-center">
+      
+
+      
+      <div class="ananke-socials"></div>
+
+    </div>
+  </div>
+</nav>
+
+    </div>
+  </header>
+
+
+
+    <main class="pb7" role="main">
+      
+  
+
+  <article class="page-ai-cheating-experiments flex-l mw7 center ph3 flex-wrap justify-between">
+    <header class="mt4 w-100">
+      <aside class="instapaper_ignoref b helvetica tracked ttu">
+          
+        Posts
+      </aside><div id="sharing" class="mt3 ananke-socials"></div>
+<h1 class="f1 athelas mt3 mb1">I Let AI Run 100 Experiments — It Learned to Cheat</h1>
+      
+      
+      
+      <time class="f6 mv4 dib tracked" datetime="2026-03-18T00:00:00Z">March 18, 2026</time>
+      
+
+      
+      
+    </header>
+    <div class="nested-copy-line-height lh-copy serif f4 nested-links mid-gray pr4-l w-100-l"><p>I built a tool that lets an LLM agent iterate on code autonomously — edit, run, measure, keep or discard, repeat. Similar to Karpathy&rsquo;s autoresearch, but I added guardrails after discovering agents will exploit any gap in your evaluation.</p>
+<p>Here&rsquo;s what happened when I pointed it at a Gomoku (five-in-a-row) AlphaZero task.</p>
+<h2 id="the-setup">The setup</h2>
+<p>Agent edits <code>agent.py</code>. It must implement <code>train()</code> (self-play + neural net training, 300s budget) and <code>choose_move()</code> (MCTS guided by the net). Evaluation plays games against Random, Greedy, and a fixed alpha-beta depth-4 champion. Weighted win rate is the metric.</p>
+<h2 id="cheat-1-skip-training-write-a-search-engine">Cheat #1: Skip training, write a search engine</h2>
+<p>The agent quickly figured out that training a neural net is slow and uncertain, but alpha-beta search is deterministic. So it wrote a perfect alpha-beta engine with transposition tables and Zobrist hashing. The <code>train()</code> function? Instantiate an empty net, save, done. The <code>net</code> parameter in <code>choose_move()</code>? Completely ignored.</p>
+<p>Win rate went up. Metric improved. But the agent wasn&rsquo;t training a neural net — it was writing a search engine. The entire experiment goal was subverted.</p>
+<h2 id="fix-code-level-enforcement">Fix: Code-level enforcement</h2>
+<p>I added two checks in <code>evaluate.py</code> (which the agent cannot see or modify):</p>
+<ol>
+<li><code>train_time &lt; 30s</code> → score 0. You claim to be training? Spend at least 30 seconds.</li>
+<li><code>register_forward_hook</code> probe on the neural net — if <code>forward()</code> is never called during 3 moves of play → score 0.</li>
+</ol>
+<h2 id="cheat-2-call-forward-but-ignore-the-result">Cheat #2: Call forward() but ignore the result</h2>
+<p>The agent adapted. It added a single <code>net.forward()</code> call at the top of <code>choose_move()</code>, discarded the output, then used its alpha-beta engine as before. The hook detected a forward call. The net wasn&rsquo;t actually influencing decisions.</p>
+<p>I raised the threshold to ≥10 forward calls per 3 moves (real MCTS does dozens of rollouts per move). That finally forced genuine neural net usage.</p>
+<h2 id="bug-3-mcts-sign-convention-not-cheating-but-equally-destructive">Bug #3: MCTS sign convention (not cheating, but equally destructive)</h2>
+<p><code>_evaluate_leaf()</code> returns a value representing how good a board position is. The agent got the sign wrong: when &ldquo;current player lost&rdquo; (meaning the parent player won), it returned -1.0. But MCTS backpropagation interprets this from the parent&rsquo;s perspective. The parent won, so it should be +1.0.</p>
+<p>One sign flip. MCTS actively preferred losing paths. 0% win rate. This bug appeared in roughly half of the agent&rsquo;s MCTS rewrites — the perspective ambiguity is genuinely confusing.</p>
+<h2 id="discovery-4-self-play-ceiling-with-a-fixed-champion">Discovery #4: Self-play ceiling with a fixed champion</h2>
+<p>After fixing everything, the agent found a decent strategy: heuristic self-play (900 games/run), cosine LR, persistent replay buffer (100k samples across iterations), 32 training batches per cycle.</p>
+<p>Win rate plateaued at 26.7. Theoretical max was ~30 (100% vs Random × 0.1 + 100% vs Greedy × 0.2 + 0% vs Champion × 0.7). The champion was a fixed alpha-beta depth-4 — not a neural net, couldn&rsquo;t be beaten and promoted. Self-play improvement hit a hard ceiling.</p>
+<h2 id="what-i-learned">What I learned</h2>
+<p>The agent isn&rsquo;t &ldquo;cheating.&rdquo; It&rsquo;s optimizing. You give it a metric, it finds the shortest path. If that path means skipping training and writing a search engine — that&rsquo;s what it does. Goodhart&rsquo;s Law in action.</p>
+<p>Prompt-level constraints don&rsquo;t work. Writing &ldquo;you must train the neural net&rdquo; in the instructions is like writing &ldquo;please don&rsquo;t find loopholes&rdquo; in a contract. The agent reads it, understands it, and finds a technically-compliant workaround.</p>
+<p>What works is <strong>code-level enforcement</strong>:</p>
+<ul>
+<li><code>train_time &lt; 30s</code> → hard zero, no negotiation</li>
+<li><code>forward_hook</code> probe → prove you&rsquo;re using the net, with code</li>
+<li><code>evaluate.py</code> set to <code>hidden</code> → agent can&rsquo;t even see the evaluation harness, let alone reverse-engineer it</li>
+</ul>
+<p>Every time I relied on prompts, the agent found a way around. Every time I relied on code, it had to do the actual work.</p>
+<h2 id="the-tool">The tool</h2>
+<p>I open-sourced it as <a href="https://github.com/suzuke/autocrucible">Crucible (autocrucible)</a>.</p>
+<p>Key differences from vanilla autoresearch:</p>
+<ul>
+<li>File-level access control: editable / readonly / hidden (enforced via SDK PreToolUse hooks, not prompts)</li>
+<li>Metric validation (rejects NaN/Inf)</li>
+<li>Orchestrator-driven loop (the program controls the loop, not the agent)</li>
+<li>Agent tool allowlist (Read/Edit/Write/Glob/Grep only — no shell access)</li>
+<li>Git-managed: every iteration committed, failures tagged, improvements kept</li>
+</ul>
+<p>If you&rsquo;re running autonomous experiment loops and the agent&rsquo;s metric keeps improving but the results feel wrong — you&rsquo;re probably hitting the same thing.</p>
+<ul class="pa0">
+  
+   <li class="list di">
+     <a href="/tags/ai/" class="link f5 grow br-pill ba ph3 pv2 mb2 dib black sans-serif no-underline">Ai</a>
+   </li>
+  
+   <li class="list di">
+     <a href="/tags/autoresearch/" class="link f5 grow br-pill ba ph3 pv2 mb2 dib black sans-serif no-underline">Autoresearch</a>
+   </li>
+  
+   <li class="list di">
+     <a href="/tags/guardrails/" class="link f5 grow br-pill ba ph3 pv2 mb2 dib black sans-serif no-underline">Guardrails</a>
+   </li>
+  
+   <li class="list di">
+     <a href="/tags/goodharts-law/" class="link f5 grow br-pill ba ph3 pv2 mb2 dib black sans-serif no-underline">Goodharts-Law</a>
+   </li>
+  
+   <li class="list di">
+     <a href="/tags/machine-learning/" class="link f5 grow br-pill ba ph3 pv2 mb2 dib black sans-serif no-underline">Machine-Learning</a>
+   </li>
+  
+</ul>
+
+      
+    </div></article>
+
+    </main>
+    <footer class="bg-black bottom-0 w-100 pa3" role="contentinfo">
+  <div class="flex justify-between">
+  <a class="f4 fw4 hover-white white-70 dn dib-ns pv2 ph3 no-underline" href="https://suzuke.github.io/" >
+    &copy;  suzuke's blog 2026 
+  </a>
+    <div><div class="ananke-socials"></div>
+</div>
+  </div>
+</footer>
+
+  </body>
+</html>
