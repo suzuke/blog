@@ -2,8 +2,15 @@
 title: "I let AI run 100 experiments. It learned to cheat."
 date: 2026-03-18
 draft: false
+summary: "An LLM agent tasked with training a neural net decided it was faster to just not. Then it got creative."
 description: "An LLM agent tasked with training a neural net decided it was faster to just not. Then it got creative."
 tags: ["ai", "autoresearch", "guardrails", "goodharts-law", "machine-learning"]
+cover:
+  image: ""
+  alt: ""
+  hidden: true
+ShowToc: true
+TocOpen: true
 ---
 
 I built a tool that runs an LLM agent in a loop: edit code, run it, measure, keep or toss. Like Karpathy's autoresearch. I had to add guardrails because the agent kept finding ways to hit the metric without doing the actual work.

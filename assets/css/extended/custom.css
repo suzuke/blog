@@ -1,0 +1,130 @@
+/* Crucible-inspired dark theme overrides */
+
+:root {
+  --theme: #141420;
+  --entry: #1c1c2e;
+  --primary: #c9d1d9;
+  --secondary: #8b949e;
+  --tertiary: #252540;
+  --content: #c9d1d9;
+  --code-bg: #0d1117;
+  --border: #2a2a4a;
+}
+
+.dark {
+  --theme: #141420;
+  --entry: #1c1c2e;
+  --primary: #c9d1d9;
+  --secondary: #8b949e;
+  --tertiary: #252540;
+  --content: #c9d1d9;
+  --code-bg: #0d1117;
+  --border: #2a2a4a;
+}
+
+/* Accent color — blue like Crucible GUI */
+a {
+  color: #6b8afd;
+}
+a:hover {
+  color: #8da6ff;
+}
+
+/* Post content */
+.post-content h2 {
+  color: #e6edf3;
+  border-bottom: 1px solid #2a2a4a;
+  padding-bottom: 0.3em;
+}
+
+/* Code blocks */
+.post-content pre {
+  background: #0d1117;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+}
+
+.post-content code {
+  color: #e06c75;
+  background: #1c1c2e;
+  border-radius: 4px;
+  padding: 0.15em 0.4em;
+  font-size: 0.9em;
+}
+
+.post-content pre code {
+  color: inherit;
+  background: none;
+  padding: 0;
+}
+
+/* Tables — card style like Crucible GUI */
+.post-content table {
+  border-collapse: separate;
+  border-spacing: 0;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.post-content th {
+  background: #1c1c2e;
+  color: #8b949e;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8em;
+  letter-spacing: 0.05em;
+  padding: 0.75em 1em;
+  border-bottom: 1px solid #2a2a4a;
+}
+
+.post-content td {
+  padding: 0.6em 1em;
+  border-bottom: 1px solid #1e1e35;
+}
+
+.post-content tr:last-child td {
+  border-bottom: none;
+}
+
+.post-content tr:hover td {
+  background: #1c1c2e;
+}
+
+/* Entry cards on home page */
+.post-entry {
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+  background: #1c1c2e;
+}
+
+/* TOC */
+.toc {
+  background: #1c1c2e;
+  border: 1px solid #2a2a4a;
+  border-radius: 8px;
+}
+
+/* Header */
+.nav {
+  border-bottom: 1px solid #2a2a4a;
+}
+
+/* Footer */
+.footer {
+  border-top: 1px solid #2a2a4a;
+}
+
+/* Bold text in tables for emphasis */
+.post-content td strong {
+  color: #6b8afd;
+}
+
+/* Blockquotes */
+.post-content blockquote {
+  border-left: 3px solid #6b8afd;
+  background: #1c1c2e;
+  border-radius: 0 8px 8px 0;
+  padding: 0.5em 1em;
+}

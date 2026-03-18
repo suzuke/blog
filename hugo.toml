@@ -1,14 +1,64 @@
 baseURL = 'https://suzuke.github.io/blog/'
 languageCode = 'en-us'
-title = "suzuke's blog"
-theme = 'ananke'
+title = "suzuke"
+theme = 'PaperMod'
+paginate = 10
 
 [params]
+  defaultTheme = "dark"
+  disableThemeToggle = false
+  ShowReadingTime = true
+  ShowShareButtons = false
+  ShowPostNavLinks = true
+  ShowBreadCrumbs = true
+  ShowCodeCopyButtons = true
+  ShowToc = true
+  TocOpen = false
   description = "AI experiments, autonomous agents, and things that break in interesting ways."
+
+  [params.homeInfoParams]
+    Title = "suzuke"
+    Content = "Building tools for autonomous AI experiments. Currently working on [Crucible](https://github.com/suzuke/autocrucible) — autoresearch with guardrails."
+
+  [[params.socialIcons]]
+    name = "github"
+    url = "https://github.com/suzuke"
+
+[params.assets]
+  favicon = "/favicon.ico"
 
 [markup]
   [markup.highlight]
-    style = 'monokai'
+    style = 'dracula'
+    lineNos = false
+    noClasses = true
   [markup.goldmark]
     [markup.goldmark.renderer]
       unsafe = true
+
+[[menu.main]]
+  identifier = "posts"
+  name = "Posts"
+  url = "/posts/"
+  weight = 10
+
+[[menu.main]]
+  identifier = "tags"
+  name = "Tags"
+  url = "/tags/"
+  weight = 20
+
+[[menu.main]]
+  identifier = "archives"
+  name = "Archive"
+  url = "/archives/"
+  weight = 30
+
+[[menu.main]]
+  identifier = "search"
+  name = "Search"
+  url = "/search/"
+  weight = 40
+
+[outputs]
+  home = ["HTML", "RSS", "JSON"]
