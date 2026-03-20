@@ -45,7 +45,7 @@ Create `~/.claude/channels/telegram/.env` and add the token:
 TELEGRAM_BOT_TOKEN=your_token_from_botfather
 ```
 
-Any text editor works. Once the plugin is installed, you can also use `/telegram:configure TOKEN` to set it — same result.
+Any text editor works. Once the plugin is installed, you can also use `/configure TOKEN` to set it — same result.
 
 ## Step 4: Restart with the channel flag
 

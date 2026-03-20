@@ -45,7 +45,7 @@ TocOpen: true
 TELEGRAM_BOT_TOKEN=你從BotFather拿到的token
 ```
 
-用任何編輯器都行。裝好 plugin 之後也可以用 `/telegram:configure TOKEN` 指令來設定，效果一樣。
+用任何編輯器都行。裝好 plugin 之後也可以用 `/configure TOKEN` 指令來設定，效果一樣。
 
 ## 第四步：重新啟動
 
