@@ -116,4 +116,4 @@ To find someone's numeric Telegram ID, have them message [@userinfobot](https://
 
 I did the phone-SSH thing for months. The terminal is too small, session management (tmux, mosh) adds friction, and copy-pasting output is awful.
 
-Telegram gives me a proper chat interface with images and code blocks, and the client keeps history. I don't need to maintain a terminal session because the bot connection is the session.
+Telegram gives me a proper chat interface with images and code blocks, and the client keeps history. No more fiddling with a tiny SSH terminal on my phone — I just text the bot. The Claude Code session on my computer still needs to be running, though, or the bot goes silent. But since Telegram messages land in that same session, all your installed skills, memory, and plugins are there. It's the same experience as sitting at your desk.
