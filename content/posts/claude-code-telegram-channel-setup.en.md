@@ -39,11 +39,13 @@ Done.
 
 ## Step 3: Save the bot token
 
+Create `~/.claude/channels/telegram/.env` and add the token:
+
 ```
-/telegram:configure YOUR_TOKEN_HERE
+TELEGRAM_BOT_TOKEN=your_token_from_botfather
 ```
 
-This writes the token to `~/.claude/channels/telegram/.env`. If you'd rather not paste a token into a session, just edit the file directly.
+Any text editor works. Once the plugin is installed, you can also use `/telegram:configure TOKEN` to set it — same result.
 
 ## Step 4: Restart with the channel flag
 

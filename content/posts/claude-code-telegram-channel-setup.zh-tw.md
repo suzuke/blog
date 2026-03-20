@@ -39,11 +39,13 @@ TocOpen: true
 
 ## 第三步：設定 bot token
 
+建立 `~/.claude/channels/telegram/.env`，把 token 寫進去：
+
 ```
-/telegram:configure 你的TOKEN貼在這
+TELEGRAM_BOT_TOKEN=你從BotFather拿到的token
 ```
 
-Token 會寫進 `~/.claude/channels/telegram/.env`。不想在 session 裡貼 token 的話，直接用編輯器改那個檔案也行。
+用任何編輯器都行。裝好 plugin 之後也可以用 `/telegram:configure TOKEN` 指令來設定，效果一樣。
 
 ## 第四步：重新啟動
 
