@@ -48,22 +48,22 @@ buildFuture = true
     [[languages.en.menu.main]]
       identifier = "posts"
       name = "Posts"
-      url = "/posts/"
+      pageRef = "/posts"
       weight = 10
     [[languages.en.menu.main]]
       identifier = "tags"
       name = "Tags"
-      url = "/tags/"
+      pageRef = "/tags"
       weight = 20
     [[languages.en.menu.main]]
       identifier = "archives"
       name = "Archive"
-      url = "/archives/"
+      pageRef = "/archives"
       weight = 30
     [[languages.en.menu.main]]
       identifier = "search"
       name = "Search"
-      url = "/search/"
+      pageRef = "/search"
       weight = 40
 
   [languages.zh-tw]
@@ -79,22 +79,22 @@ buildFuture = true
     [[languages.zh-tw.menu.main]]
       identifier = "posts"
       name = "文章"
-      url = "/zh-tw/posts/"
+      pageRef = "/posts"
       weight = 10
     [[languages.zh-tw.menu.main]]
       identifier = "tags"
       name = "標籤"
-      url = "/zh-tw/tags/"
+      pageRef = "/tags"
       weight = 20
     [[languages.zh-tw.menu.main]]
       identifier = "archives"
       name = "歸檔"
-      url = "/zh-tw/archives/"
+      pageRef = "/archives"
       weight = 30
     [[languages.zh-tw.menu.main]]
       identifier = "search"
       name = "搜尋"
-      url = "/zh-tw/search/"
+      pageRef = "/search"
       weight = 40
 
 [outputs]
